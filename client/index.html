@@ -3,14 +3,31 @@
         <title>Prova Firma Digitale</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
+         <div class="container">
+    <a href="#menu" class="menu-link"></a>
+    <nav id="menu" class="menu">
+        <a href="#" class="menu-link menu-close"></a>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="verifica.html">Verifica File</a></li>
+            <li><a href="about.html">Chi Siamo</a></li>
+            <li><a href="contact.html">Contatti</a></li>
+        </ul>
+    </nav>
+        </div>
         <h1>Prova Firma Digitale</h1>
         <form method="post" action="/sign" enctype="multipart/form-data">
             <input type="file" name="file" />
             <input type="submit" value="Sign!" disabled />
         </form>
         <div id="result"></div>
+        <div id="download-links">
+            <div id="download-link-firma"></div>
+            <div id="download-link-chiave-pubblica"></div>
+        </div>
         <script>
             const bottone = document.querySelector('input[type="submit"]');
             const fileInput = document.querySelector('input[type="file"]');
@@ -24,6 +41,10 @@
             const form = document.querySelector('form');
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
+                document.getElementById('download-link-firma').innerHTML = '';
+                document.getElementById('download-link-chiave-pubblica').innerHTML = '';
+                console.log('Pulizia link:', document.getElementById('download-link-firma').innerHTML);
+                console.log('Pulizia link:', document.getElementById('download-link-chiave-pubblica').innerHTML);
                 const selectedFile = form.querySelector('input[type="file"]').files[0];
                 if (selectedFile.type !== 'application/pdf') {
                     alert('Selezionare un file PDF');
@@ -45,6 +66,22 @@
                 try {
                     const risultato = await fetchData();
                 document.getElementById('result').innerText = JSON.stringify(risultato, null, 2);
+                const firma = new Blob([risultato.signature], { type: 'text/plain' });
+                const chiavePubblica = new Blob([risultato.publicKeyPem], { type: 'text/plain' });
+                const urlFirma = URL.createObjectURL(firma);
+                const urlChiavePubblica = URL.createObjectURL(chiavePubblica);
+
+                const downloadLinkFirma = document.createElement('a');
+                downloadLinkFirma.href = urlFirma;
+                downloadLinkFirma.download = 'firma.sig';
+                downloadLinkFirma.innerText = 'Scarica Firma Digitale';
+                document.getElementById('download-link-firma').appendChild(downloadLinkFirma);
+
+                const downloadLinkChiavePubblica = document.createElement('a');
+                downloadLinkChiavePubblica.href = urlChiavePubblica;
+                downloadLinkChiavePubblica.download = 'chiave_pubblica.pem';
+                downloadLinkChiavePubblica.innerText = 'Scarica Chiave Pubblica';
+                document.getElementById('download-link-chiave-pubblica').appendChild(downloadLinkChiavePubblica);
                     } catch (err) {
                  console.error('Errore nel parsing JSON:', err);
                  document.getElementById('result').innerText = 'Errore nel parsing JSON: ' + err.message;

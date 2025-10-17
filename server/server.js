@@ -18,9 +18,11 @@ app.use(express.static('client'));
 const upload = multer({ storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }, // Limite di 10MB per i file caricati, basta?
     fileFilter: (req, file, cb) => {
-        // Accetta solo file PDF
-        if (file.mimetype === 'application/pdf') cb(null, true);
-        else { cb(new Error('Solo file PDF sono accettati!'), false); }
+        const fileAccettati =  ['application/pdf', 'application/octet-stream', 'text/plain'];
+        if (fileAccettati.includes(file.mimetype)) {
+            return cb(null, true);
+        }
+        cb(new Error('Tipo di file non accettato. Carica un file PDF, sig o pem.'));
     }
 });
 
@@ -56,6 +58,35 @@ app.post('/sign', upload.single('file'), (req, res) => {
     });
     } catch (error) {
     res.status(400).json({ error: error.message });
+    }
+});
+
+// Verifica firma
+app.post('/verify', upload.fields([
+  { name: 'pdf', maxCount: 1 },
+  { name: 'firma', maxCount: 1 },
+  { name: 'chiave', maxCount: 1 }
+]), (req, res) => {
+    try {
+        const pdfData = req.files['pdf'][0].buffer;
+        const firmaData = req.files['firma'][0].buffer.toString();
+        const chiaveData = req.files['chiave'][0].buffer.toString();
+
+        const signatureBuffer = Buffer.from(firmaData, 'base64');
+        
+        const verify = crypto.createVerify('SHA256');
+        verify.update(pdfData);
+        verify.end();
+
+        const isValid = verify.verify({
+            key: chiaveData,
+            padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+            saltLength: 32,
+        }, signatureBuffer);
+
+        res.json({ valid: isValid });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
 
