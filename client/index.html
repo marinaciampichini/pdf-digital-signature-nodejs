@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <title>Prova Firma Digitale</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <h1>Prova Firma Digitale</h1>
+        <form method="post" action="/sign" enctype="multipart/form-data">
+            <input type="file" name="file" />
+            <input type="submit" value="Sign!" disabled />
+        </form>
+        <div id="result"></div>
+        <script>
+            const bottone = document.querySelector('input[type="submit"]');
+            const fileInput = document.querySelector('input[type="file"]');
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    bottone.disabled = false;
+                } else {
+                    bottone.disabled = true;
+                }
+            });
+            const form = document.querySelector('form');
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const selectedFile = form.querySelector('input[type="file"]').files[0];
+                if (selectedFile.type !== 'application/pdf') {
+                    alert('Selezionare un file PDF');
+                    return;
+                } else if (selectedFile.size > 10 * 1024 * 1024) {
+                    alert('Il file supera la dimensione massima di 10MB');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                async function fetchData() {
+                    const risposta = await fetch('http://localhost:3000/sign', {
+                        method: 'POST',
+                        body: formData
+                    });
+                const documentoFirmato = await risposta.json();
+                return documentoFirmato; 
+                };
+                try {
+                    const risultato = await fetchData();
+                document.getElementById('result').innerText = JSON.stringify(risultato, null, 2);
+                    } catch (err) {
+                 console.error('Errore nel parsing JSON:', err);
+                 document.getElementById('result').innerText = 'Errore nel parsing JSON: ' + err.message;
+                    }
+        });
+    </script>
+
+</body>
+</html>
