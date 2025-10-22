@@ -69,10 +69,8 @@ app.post('/verify', upload.fields([
 ]), (req, res) => {
     try {
         const pdfData = req.files['pdf'][0].buffer;
-        const firmaData = req.files['firma'][0].buffer.toString();
-        const chiaveData = req.files['chiave'][0].buffer.toString();
-
-        const signatureBuffer = Buffer.from(firmaData, 'base64');
+        const firmaData = req.files['firma'][0].buffer;
+        const chiaveData = req.files['chiave'][0].buffer.toString('utf8');
         
         const verify = crypto.createVerify('SHA256');
         verify.update(pdfData);
@@ -82,7 +80,7 @@ app.post('/verify', upload.fields([
             key: chiaveData,
             padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
             saltLength: 32,
-        }, signatureBuffer);
+        }, firmaData);
 
         res.json({ valid: isValid });
     } catch (error) {

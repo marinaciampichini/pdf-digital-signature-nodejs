@@ -50,7 +50,7 @@
                         body: formData
                     });
                     const risultato = await risposta.json();
-                    if (risultato.valido) {
+                    if (risultato.valid) {
                         document.getElementById('result').innerText = 'Firma valida!';
                     } else {
                         document.getElementById('result').innerText = 'Firma non valida!';
