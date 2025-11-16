@@ -17,7 +17,7 @@ app.use(express.static('client'));
 // Configurazione storage per multer
 const upload = multer({ storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }, // Limite di 10MB per i file caricati, basta?
-    fileFilter: (req, file, cb) => {
+    fileFilter: (_req, file, cb) => {
         const fileAccettati =  ['application/pdf', 'application/octet-stream', 'text/plain'];
         if (fileAccettati.includes(file.mimetype)) {
             return cb(null, true);

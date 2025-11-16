@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
     <head>
         <title>Prova Firma Digitale</title>
         <meta charset="UTF-8">
@@ -6,31 +7,46 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-         <div class="container">
+        <header>
+         <div class="logo">Logo</div>
+         
     <a href="#menu" class="menu-link"></a>
     <nav id="menu" class="menu">
         <a href="#" class="menu-link menu-close"></a>
-        <ul>
+        <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="verifica.html">Verifica File</a></li>
             <li><a href="about.html">Chi Siamo</a></li>
             <li><a href="contact.html">Contatti</a></li>
         </ul>
     </nav>
-        </div>
-        <h1>Prova Firma Digitale</h1>
-        <form method="post" action="/sign" enctype="multipart/form-data">
-            <input type="file" name="file" />
-            <input type="submit" value="Sign!" disabled />
-        </form>
-        <div id="result"></div>
-        <div id="download-links">
-            <div id="download-link-firma"></div>
-            <div id="download-link-chiave-pubblica"></div>
-        </div>
+    </header>
+    <main>
+            <div class="container">
+                <div class="glass-card">
+                    <h1>Firma Digitale</h1>
+                    <p class="subtitle">Carica il documento al quale vuoi apporre una firma crittografica protetta da encryption RSA-PSS:</p>
+                    <div class="upload-area">
+                        <form method="post" action="/sign" enctype="multipart/form-data">
+                            <input type="file" name="file" />
+                            <input type="submit" value="Sign!" disabled />
+                        </form>
+                    </div>
+                    <div id="result"></div>
+                    <div id="download-links">
+                        <div id="download-link-firma"></div>
+                        <div id="download-link-chiave-pubblica"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
         <script>
             const bottone = document.querySelector('input[type="submit"]');
             const fileInput = document.querySelector('input[type="file"]');
+            const form = document.querySelector('form');
+
+            // Abilita il pulsante solo quando un file è selezionato
             fileInput.addEventListener('change', () => {
                 if (fileInput.files.length > 0) {
                     bottone.disabled = false;
@@ -38,14 +54,18 @@
                     bottone.disabled = true;
                 }
             });
-            const form = document.querySelector('form');
+
+            // Gestione dell'invio del modulo
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
+
+                // Pulizia dei link di download precedenti
                 document.getElementById('download-link-firma').innerHTML = '';
                 document.getElementById('download-link-chiave-pubblica').innerHTML = '';
-                console.log('Pulizia link:', document.getElementById('download-link-firma').innerHTML);
-                console.log('Pulizia link:', document.getElementById('download-link-chiave-pubblica').innerHTML);
+                
                 const selectedFile = form.querySelector('input[type="file"]').files[0];
+
+                // Validazione del file
                 if (selectedFile.type !== 'application/pdf') {
                     alert('Selezionare un file PDF');
                     return;
@@ -53,41 +73,52 @@
                     alert('Il file supera la dimensione massima di 10MB');
                     return;
                 }
+
+                // Invio richiesta al server 
                 const formData = new FormData();
                 formData.append('file', selectedFile);
-                async function fetchData() {
+
+                try {
                     const risposta = await fetch('http://localhost:3000/sign', {
                         method: 'POST',
                         body: formData
                     });
-                const documentoFirmato = await risposta.json();
-                return documentoFirmato; 
-                };
-                try {
-                    const risultato = await fetchData();
-                document.getElementById('result').innerText = JSON.stringify(risultato, null, 2);
-                const firmaBytes = Uint8Array.from(atob(risultato.signature), c => c.charCodeAt(0));
-                const firma = new Blob([firmaBytes], { type: 'application/octet-stream' });
-                const chiavePubblica = new Blob([risultato.publicKeyPem], { type: 'text/plain' });
-                const urlFirma = URL.createObjectURL(firma);
-                const urlChiavePubblica = URL.createObjectURL(chiavePubblica);
+                const risultato = await risposta.json();
 
-                const downloadLinkFirma = document.createElement('a');
-                downloadLinkFirma.href = urlFirma;
-                downloadLinkFirma.download = 'firma.sig';
-                downloadLinkFirma.innerText = 'Scarica Firma Digitale';
-                document.getElementById('download-link-firma').appendChild(downloadLinkFirma);
+                // Mostra messaggio di successo
+                document.getElementById('result').innerText =
+                'Firma digitale creata con successo!';
 
-                const downloadLinkChiavePubblica = document.createElement('a');
-                downloadLinkChiavePubblica.href = urlChiavePubblica;
-                downloadLinkChiavePubblica.download = 'chiave_pubblica.pem';
-                downloadLinkChiavePubblica.innerText = 'Scarica Chiave Pubblica';
-                document.getElementById('download-link-chiave-pubblica').appendChild(downloadLinkChiavePubblica);
-                    } catch (err) {
-                 console.error('Errore nel parsing JSON:', err);
-                 document.getElementById('result').innerText = 'Errore nel parsing JSON: ' + err.message;
-                    }
-        });
+                // Crea blob per il download della firma
+                const firmaBytes = Uint8Array.from(
+                    atob(risultato.signature),
+                    c => c.charCodeAt(0)
+                );
+                const firma = new Blob([firmaBytes],
+                { type: 'application/octet-stream' });
+
+                // Crea blob per il download della chiave pubblica
+                const chiavePubblica = new Blob([risultato.publicKeyPem],
+                { type: 'text/plain' });
+                
+                // Genera i link di download
+                creaLinkDownload(firma, 'firma.sig', 'Scarica Firma Digitale', 'download-link-firma');
+                creaLinkDownload(chiavePubblica, 'chiave_pubblica.pem', 'Scarica Chiave Pubblica', 'download-link-chiave-pubblica');
+            
+                } catch (err) {
+                document.getElementById('result').innerText = 
+                'Errore: ' + err.message;
+                }
+            });
+                // Funzione helper per creare i link di download
+                function creaLinkDownload(blob, nomeFile, testoLink, idElemento) {
+                    const url = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = nomeFile;
+                    downloadLink.innerText = testoLink;
+                    document.getElementById(idElemento).appendChild(downloadLink);
+                }
     </script>
 
 </body>

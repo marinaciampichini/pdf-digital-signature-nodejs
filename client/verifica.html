@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
     <head>
         <title>Verifica Firma Digitale</title>
         <meta charset="UTF-8">
@@ -6,33 +7,48 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="container">
-    <a href="#menu" class="menu-link"></a>
-    <nav id="menu" class="menu">
-        <a href="#" class="menu-link menu-close"></a>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="verifica.html">Verifica File</a></li>
-            <li><a href="about.html">Chi Siamo</a></li>
-            <li><a href="contact.html">Contatti</a></li>
-        </ul>
-    </nav>
-        </div>
-        <h1>Verifica Firma Digitale</h1>
-        <form method="post" action="/verify" enctype="multipart/form-data">
-            <label>PDF da verificare:</label>
-            <input type="file" name="pdf" accept="application/pdf" required />
-            <label>Firma Digitale:</label>
-            <input type="file" name="firma" accept=".sig" required />
-            <label>Chiave Pubblica:</label>
-            <input type="file" name="chiave" accept=".pem" required />
-            <input type="submit" value="Verifica!" disabled />
-        </form>
-        <div id="result"></div>
+        <header>
+            <div class="logo">Logo</div>
+            
+            <a href="#menu" class="menu-link"></a>
+            <nav id="menu" class="menu">
+                <a href="#" class="menu-link menu-close"></a>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="verifica.html">Verifica File</a></li>
+                    <li><a href="about.html">Chi Siamo</a></li>
+                    <li><a href="contact.html">Contatti</a></li>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            <div class="container">
+                <div class="glass-card">
+                    <h1>Verifica Firma Digitale</h1>
+                    <p class="subtitle">Carica il documento PDF, la firma digitale e la chiave pubblica per verificare l'autenticità:</p>
+                    <div class="upload-area">
+                        <form method="post" action="/verify" enctype="multipart/form-data">
+                            <label>PDF da verificare:</label>
+                            <input type="file" name="pdf" accept="application/pdf" required />
+                            
+                            <label>Firma Digitale:</label>
+                            <input type="file" name="firma" accept=".sig" required />
+                            
+                            <label>Chiave Pubblica:</label>
+                            <input type="file" name="chiave" accept=".pem" required />
+                            
+                            <input type="submit" value="Verifica!" disabled />
+                        </form>
+                    </div>
+                    <div id="result"></div>
+                </div>
+            </div>
+        </main>
 
         <script>
             const bottone = document.querySelector('input[type="submit"]');
             const fileInputs = document.querySelectorAll('input[type="file"]');
+            
             fileInputs.forEach(input => {
                 input.addEventListener('change', () => {
                     const allFilled = Array.from(fileInputs).every(i => i.files.length > 0);
@@ -44,23 +60,27 @@
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const formData = new FormData(form);
+                
                 try {
                     const risposta = await fetch('http://localhost:3000/verify', {
                         method: 'POST',
                         body: formData
                     });
                     const risultato = await risposta.json();
+                    
                     if (risultato.valid) {
-                        document.getElementById('result').innerText = 'Firma valida!';
+                        document.getElementById('result').innerText = '✓ Firma valida!';
+                        document.getElementById('result').style.color = '#4ade80';
                     } else {
-                        document.getElementById('result').innerText = 'Firma non valida!';
+                        document.getElementById('result').innerText = '✗ Firma non valida!';
+                        document.getElementById('result').style.color = '#f87171';
                     }
                 } catch (err) {
                     console.error('Errore durante la verifica:', err);
                     document.getElementById('result').innerText = 'Errore durante la verifica: ' + err.message;
+                    document.getElementById('result').style.color = '#fbbf24';
                 }
             });
         </script>
-
     </body>
 </html>
