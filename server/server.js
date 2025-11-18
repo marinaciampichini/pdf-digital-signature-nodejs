@@ -16,13 +16,13 @@ app.use(express.static('client'));
 
 // Configurazione storage per multer
 const upload = multer({ storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 }, // Limite di 10MB per i file caricati, basta?
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
     fileFilter: (_req, file, cb) => {
         const fileAccettati =  ['application/pdf', 'application/octet-stream', 'text/plain'];
         if (fileAccettati.includes(file.mimetype)) {
             return cb(null, true);
         }
-        cb(new Error('Tipo di file non accettato. Carica un file PDF, sig o pem.'));
+        return cb(new Error('Tipo di file non accettato. Carica un file PDF, sig o pem.'));
     }
 });
 
@@ -46,7 +46,6 @@ app.post('/sign', upload.single('file'), (req, res) => {
             padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
             saltLength: 32,
         });
-        console.log('Ricevuto file:', req.file);
         
         res.json({
         fileName: req.file.originalname,
