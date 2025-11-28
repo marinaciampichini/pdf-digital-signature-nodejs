@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
     <head>
-        <title>Prova Firma Digitale</title>
+        <title>Firma Digitale</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <header>
-         <div class="logo">Logo</div>
+         <div class="logo">SignCert</div>
          
     <a href="#menu" class="menu-link"></a>
     <nav id="menu" class="menu">
@@ -69,10 +69,12 @@
 
                 // Validazione del file
                 if (selectedFile.type !== 'application/pdf') {
-                    alert('Selezionare un file PDF');
+                    document.getElementById('result').innerText =
+                    'Errore: Il file non è un PDF.';
                     return;
                 } else if (selectedFile.size > 10 * 1024 * 1024) {
-                    alert('Il file supera la dimensione massima di 10MB');
+                    document.getElementById('result').innerText =
+                    'Errore: Il file supera la dimensione massima di 10MB.';
                     return;
                 }
 

@@ -67,6 +67,16 @@ app.post('/verify', upload.fields([
   { name: 'chiave', maxCount: 1 }
 ]), (req, res) => {
     try {
+        if (
+            !req.files?.pdf?.[0] ||
+            !req.files?.firma?.[0] ||
+            !req.files?.chiave?.[0]
+        ) {
+            return res.status(400).json({ 
+                error: 'File mancanti o caricamento non valido.' 
+            });
+        }
+        
         const pdfData = req.files['pdf'][0].buffer;
         const firmaData = req.files['firma'][0].buffer;
         const chiaveData = req.files['chiave'][0].buffer.toString('utf8');
